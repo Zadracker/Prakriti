@@ -1,0 +1,119 @@
+name: prakriti
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: '>=3.5.0-180.3.beta <4.0.0'
+
+dependencies:
+  animated_text_kit: ^4.2.2
+  cached_network_image: ^3.3.1
+  cloud_firestore: ^5.1.0
+  dotenv: ^4.2.0
+  file_picker: ^8.0.6
+  firebase_auth: ^5.1.2
+  firebase_core: ^3.1.1
+  firebase_storage: ^12.1.1
+  fl_chart: ^0.68.0
+  flutter:
+    sdk: flutter
+  flutter_dotenv: ^5.1.0
+  flutter_launcher_icons: ^0.13.1
+  flutter_svg: ^2.0.10+1
+  flutter_tts: ^4.0.2
+  google_fonts: ^6.2.1
+  google_generative_ai: ^0.4.3
+  http: ^1.2.1
+  image_picker: ^1.1.2
+  provider: ^6.1.2
+  speech_to_text: ^6.6.2
+  url_launcher: ^6.3.0
+  uuid: ^4.4.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - .env
+    - lib/assets/Prakriti_logo.svg
+    - lib/assets/login_image.jpg
+    - lib/assets/signup_image.jpg
+    - lib/assets/Prakriti_splash.png
+    - lib/assets/profile_image_assets/normal_profile_images/cat_1_profile_image.png
+    - lib/assets/profile_image_assets/normal_profile_images/cow_profile_image.png
+    - lib/assets/profile_image_assets/normal_profile_images/cub_1_profile_image.png
+    - lib/assets/profile_image_assets/normal_profile_images/dog_profile_image.png
+    - lib/assets/profile_image_assets/normal_background/flower_bg.png
+    - lib/assets/profile_image_assets/normal_background/temperate_woodland_bg.png
+    - lib/assets/profile_image_assets/normal_background/tropical_dry_forest_bg.png
+    - lib/assets/profile_image_assets/normal_background/tropical_rain_forest_bg.png
+    - lib/assets/profile_image_assets/premium_profile_images/cat_2_profile_image.png
+    - lib/assets/profile_image_assets/premium_profile_images/crab_profile_image.png
+    - lib/assets/profile_image_assets/premium_profile_images/cub_2_profile_image.png
+    - lib/assets/profile_image_assets/premium_profile_images/duck_profile_image.png
+    - lib/assets/profile_image_assets/premium_profile_images/flamingo_profile_image.png
+    - lib/assets/profile_image_assets/premium_profile_images/frog_profile_image.png
+    - lib/assets/profile_image_assets/premium_profile_images/grey_wolf_profile_image.png
+    - lib/assets/profile_image_assets/premium_profile_images/lion_profile_image.png
+    - lib/assets/profile_image_assets/premium_profile_images/swan_profile_image.png
+    - lib/assets/profile_image_assets/premium_profile_images/white_wolf_profile_image.png
+    - lib/assets/profile_image_assets/premium_backgrounds/beach_bg.png
+    - lib/assets/profile_image_assets/premium_backgrounds/desert_bg.png
+    - lib/assets/profile_image_assets/premium_backgrounds/reef_bg.png
+    - lib/assets/profile_image_assets/premium_backgrounds/tide_bg.png
+    - lib/assets/profile_image_assets/premium_backgrounds/tropical_savanna_bg.png
+    - lib/assets/profile_image_assets/premium_backgrounds/tundra_bg.png
+    - lib/assets/profile_image_assets/special_profile_images/black_panther_profile_image.png
+    - lib/assets/profile_image_assets/special_profile_images/black_wolf_profile_image.png
+    - lib/assets/profile_image_assets/special_profile_images/orange_wolf_profile_image.png
+    - lib/assets/profile_image_assets/special_profile_images/tiger_profile_image.png
+    - lib/assets/profile_image_assets/special_borders/oyester_border.png
+    - lib/assets/profile_image_assets/special_borders/plant_border.png
+    - lib/assets/profile_image_assets/special_borders/rock_border.png
+    - lib/assets/profile_image_assets/special_borders/wood_border.png
+    - lib/assets/profile_image_assets/special_background/cloud_bg.png
+    - lib/assets/profile_image_assets/special_background/mountain_bg.png
+    - lib/assets/Bank/eco_points_1.png
+    - lib/assets/Bank/eco_points_2.png
+    - lib/assets/Bank/eco_points_3.png
+    - lib/assets/Bank/terra_knight.png
+    - lib/assets/landing_page_assets/hero_large.png
+    - lib/assets/landing_page_assets/scan.png
+    - lib/assets/landing_page_assets/gemini.png
+    - lib/assets/landing_page_assets/news.png
+    - lib/assets/landing_page_assets/tasks.png
+    - lib/assets/landing_page_assets/Forum.png
+    - lib/assets/landing_page_assets/quiz.png
+
+flutter_launcher_icons:
+  android: true  # Set to true if you want to generate Android icons
+  ios: false
+  image_path: "lib/assets/Prakriti_splash.png"
+  min_sdk_android: 21 # Android min SDK version
+  web:
+    generate: true
+    image_path: "lib/assets/Prakriti_splash.png"
+    background_color: "#000000" # Replace with your preferred background color
+    theme_color: "#000000" # Replace with your preferred theme color
+  windows:
+    generate: false
+    image_path: "path/to/image.png"
+    icon_size: 48 # Minimum size for Windows icons
+  macos:
+    generate: false
+    image_path: "path/to/image.png"
+
+
+  fonts:
+    - family: OpenDyslexic
+      fonts:
+        - asset: lib/assets/fonts/OpenDyslexic-Regular.otf
+        - asset: lib/assets/fonts/OpenDyslexic-Bold.otf
+          weight: 700
+        - asset: lib/assets/fonts/OpenDyslexic-Italic.otf
+          style: italic

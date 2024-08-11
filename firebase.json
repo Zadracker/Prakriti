@@ -1,0 +1,30 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "prakriti-firebase-ad13e",
+          "appId": "1:326170575776:android:ad3b0312311d0bec191ac5",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "prakriti-firebase-ad13e",
+          "configurations": {
+            "android": "1:326170575776:android:ad3b0312311d0bec191ac5",
+            "web": "1:326170575776:web:0c55d06ec6230009191ac5"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "y",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ]
+  }
+}

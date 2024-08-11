@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "326170575776",
+    "project_id": "prakriti-firebase-ad13e",
+    "storage_bucket": "prakriti-firebase-ad13e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:326170575776:android:ad3b0312311d0bec191ac5",
+        "android_client_info": {
+          "package_name": "com.project.prakriti"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBHIha4HpzRxbESRpKhxnO3kx_BVb-JrTs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
