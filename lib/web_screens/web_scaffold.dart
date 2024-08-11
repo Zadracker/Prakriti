@@ -135,6 +135,7 @@ class _WebScaffoldState extends State<WebScaffold> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [

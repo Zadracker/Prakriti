@@ -1,0 +1,82 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Match all documents in the 'users' collection
+    match /users/{userId} {
+      // Allow read/write access to authenticated users where the requester's user ID matches the document ID
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // Match all documents in the 'tasks' subcollection
+      match /tasks/{taskId} {
+        // Allow read access to authenticated users
+        allow read: if request.auth != null;
+
+        // Allow write access to authenticated users who are the owner or assigned to the task
+        allow write: if request.auth != null && (request.auth.uid == userId || request.resource.data.assignedUserIds.hasAny([request.auth.uid]));
+
+        // Match any other subcollections under 'tasks'
+        match /{document=**} {
+          allow read, write: if request.auth != null && (request.auth.uid == userId || request.resource.data.assignedUserIds.hasAny([request.auth.uid]));
+        }
+      }
+    }
+
+    // Match all documents in the 'daily_tasks' collection and its subcollections
+    match /daily_tasks/{date}/tasks/{taskId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Match all documents in the 'eco_advocate_applications' collection
+    match /eco_advocate_applications/{applicationId} {
+      // Allow read access to authenticated users
+      allow read: if request.auth != null;
+
+      // Allow write access to authenticated users only if the user is the owner of the application
+      allow write: if request.auth != null && request.auth.uid == resource.data.uid;
+    }
+
+    // Match all documents in the 'task_submissions' collection
+    match /task_submissions/{submissionId} {
+      // Allow read/write access to authenticated users
+      allow read, write: if request.auth != null;
+    }
+
+    // Match all documents in the 'posts' collection
+    match /posts/{postId} {
+      // Match all comments in a specific post
+      match /comments/{commentId} {
+        // Allow read and write access based on the rules you set
+        allow read, write: if request.auth != null;
+      }
+
+      // Allow other operations on the posts collection
+      allow read, write: if request.auth != null;
+    }
+
+    // Match all documents in the 'quiz_questions' collection and its subcollections
+    match /quiz_questions/{document=**} {
+      // Allow read access to all authenticated users
+      allow read: if request.auth != null;
+      
+      // Allow write access to authenticated users only if the document does not exist (prevents overwriting existing questions)
+      allow write: if request.auth != null && !exists(/databases/$(database)/documents/$(request.path));
+    }
+
+    // Match all documents in the 'quiz_attempts' collection
+    match /quiz_attempts/{attemptId} {
+      // Allow read access to authenticated users
+      allow read: if request.auth != null;
+      
+      // Allow write access to authenticated users only if the user is the owner of the attempt
+      allow write: if request.auth != null && request.auth.uid == resource.data.userID;
+    }
+
+    // Match any other collections and documents
+    match /{document=**} {
+      // Allow read/write access to authenticated users
+      allow read, write: if request.auth != null;
+    }
+  }
+}
