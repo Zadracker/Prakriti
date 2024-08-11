@@ -73,7 +73,7 @@ class _WebSignupState extends State<WebSignup> {
       });
     } catch (e) {
       setState(() {
-        _errorMessage = 'An unknown error occurred. Please try again.';
+        _errorMessage = 'Check e-mail for verification message';
       });
     } finally {
       setState(() {
