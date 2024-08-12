@@ -64,7 +64,7 @@ class _WebSignupState extends State<WebSignup> {
         );
       } else {
         setState(() {
-          _errorMessage = 'Signup failed. Please try again.';
+          _errorMessage = 'Signup failed. Please try again. check e-mail';
         });
       }
     } on FirebaseAuthException catch (e) {

@@ -57,9 +57,9 @@ class _SignupPageState extends State<SignupPage> {
         _showErrorDialog('An unknown error occurred. Please try again.');
       }
     } on FirebaseAuthException catch (e) {
-      _showErrorDialog(e.message ?? 'An error occurred. Please try again.');
+      _showErrorDialog(e.message ?? 'An error occurred. Please try again. check e-mail');
     } catch (e) {
-      _showErrorDialog('An error occurred. Please try again.');
+      _showErrorDialog('An error occurred. Please try again. check e-mail');
     }
   }
 
