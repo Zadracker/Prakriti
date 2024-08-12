@@ -15,6 +15,7 @@ class _PasswordResetState extends State<PasswordReset> {
   bool _isLoading = false;
   String? _message;
 
+  // Method to send a password reset email
   Future<void> _sendPasswordResetEmail() async {
     setState(() {
       _isLoading = true;
@@ -22,6 +23,7 @@ class _PasswordResetState extends State<PasswordReset> {
     });
 
     try {
+      // Request a password reset email using AuthService
       await _authService.sendPasswordResetEmail(_emailController.text.trim());
       setState(() {
         _message = 'Password reset email sent. Please check your inbox.';

@@ -16,6 +16,7 @@ import 'dart:io';
 import 'package:prakriti/services/shop_service.dart';
 import 'package:flutter/services.dart'; // Import for clipboard functionality
 
+// The AnSettings class provides a settings screen for the application.
 class AnSettings extends StatefulWidget {
   const AnSettings({super.key});
 
@@ -24,37 +25,41 @@ class AnSettings extends StatefulWidget {
 }
 
 class _AnSettingsState extends State<AnSettings> {
-  User? _user;
-  String? _profileImageUrl;
-  String? _userRole;
-  String? _userId;
+  User? _user; // Holds the currently logged-in user
+  String? _profileImageUrl; // Holds the URL of the user's profile image
+  String? _userRole; // Holds the user's role (e.g., Member, Eco Advocate)
+  String? _userId; // Holds the user's ID
 
-  final UserService _userService = UserService();
-  final AuthService _authService = AuthService();
-  final ImagePicker _picker = ImagePicker();
-  ProfileService? _profileService;
-  final ShopService _shopService = ShopService();
+  final UserService _userService = UserService(); // Service to handle user operations
+  final AuthService _authService = AuthService(); // Service to handle authentication
+  final ImagePicker _picker = ImagePicker(); // For picking images from the gallery
+  ProfileService? _profileService; // Service to handle profile operations
+  final ShopService _shopService = ShopService(); // Service for shop-related operations
 
   @override
   void initState() {
     super.initState();
-    _user = FirebaseAuth.instance.currentUser;
-    _loadUserData();
+    _user = FirebaseAuth.instance.currentUser; // Get the current user
+    _loadUserData(); // Load user data when the widget is initialized
   }
   
+  // Method to load user data from Firestore
   Future<void> _loadUserData() async {
     if (_user != null) {
       try {
+        // Fetch user data from Firestore
         DocumentSnapshot<Map<String, dynamic>> userDoc = await _userService.getUser(_user!.uid);
 
-        String? userRole = userDoc.data()?['role'];
+        String? userRole = userDoc.data()?['role']; // Get the user's role
 
         String? profileImageUrl;
 
         if (userRole != null) {
+          // If the user is an Eco Advocate, fetch their profile image URL
           if (userRole == UserService.ECO_ADVOCATE) {
             profileImageUrl = userDoc.data()?['profileImageUrl'];
           } else {
+            // For other roles, fetch the profile image from the 'profiles' collection
             DocumentSnapshot<Map<String, dynamic>> profileDoc = await FirebaseFirestore.instance
                 .collection('profiles')
                 .doc(_user!.uid)
@@ -65,34 +70,38 @@ class _AnSettingsState extends State<AnSettings> {
         }
 
         setState(() {
-          _profileImageUrl = profileImageUrl;
-          _userRole = userRole;
-          _userId = _user!.uid;
-          _profileService = ProfileService(userId: _userId!);
+          _profileImageUrl = profileImageUrl; // Update the profile image URL
+          _userRole = userRole; // Update the user's role
+          _userId = _user!.uid; // Update the user ID
+          _profileService = ProfileService(userId: _userId!); // Initialize ProfileService
         });
       } catch (e) {
+        // Handle any errors that occur while loading user data
       }
     }
   }
 
+  // Method to pick an image and upload it as the profile image
   Future<void> _pickAndUploadProfileImage() async {
     try {
       final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
 
       if (image != null) {
-        File file = File(image.path);
-        String downloadUrl = await _userService.uploadEcoAdvocateProfileImage(_user!.uid, file);
+        File file = File(image.path); // Convert the picked image to a File
+        String downloadUrl = await _userService.uploadEcoAdvocateProfileImage(_user!.uid, file); // Upload the image and get the download URL
         await FirebaseFirestore.instance.collection('users').doc(_user!.uid).update({
-          'profileImageUrl': downloadUrl,
+          'profileImageUrl': downloadUrl, // Update the user's profile image URL in Firestore
         });
         setState(() {
-          _profileImageUrl = downloadUrl;
+          _profileImageUrl = downloadUrl; // Update the profile image URL state
         });
       }
     } catch (e) {
+      // Handle any errors that occur while picking or uploading the image
     }
   }
 
+  // Method to show a confirmation dialog for logout
   Future<void> _showLogoutConfirmation() async {
     bool? confirmLogout = await showDialog<bool>(
       context: context,
@@ -103,13 +112,13 @@ class _AnSettingsState extends State<AnSettings> {
             TextButton(
               child: const Text('No', style: TextStyle(color: Colors.grey)),
               onPressed: () {
-                Navigator.of(context).pop(false);
+                Navigator.of(context).pop(false); // Dismiss the dialog with a 'No' response
               },
             ),
             TextButton(
               child: const Text('Yes', style: TextStyle(color: Colors.red)),
               onPressed: () {
-                Navigator.of(context).pop(true);
+                Navigator.of(context).pop(true); // Dismiss the dialog with a 'Yes' response
               },
             ),
           ],
@@ -118,17 +127,18 @@ class _AnSettingsState extends State<AnSettings> {
     );
 
     if (confirmLogout == true) {
-      await _authService.signOut();
+      await _authService.signOut(); // Sign out the user
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => LoginPage()),
+        MaterialPageRoute(builder: (context) => LoginPage()), // Navigate to the login page
       );
     }
   }
 
+  // Method to handle profile image tap based on user role
   void _handleProfileImageTap() {
     if (_userRole == UserService.ECO_ADVOCATE) {
-      _pickAndUploadProfileImage();
+      _pickAndUploadProfileImage(); // Allow Eco Advocates to pick and upload a new profile image
     } else {
       Navigator.push(
         context,
@@ -138,27 +148,29 @@ class _AnSettingsState extends State<AnSettings> {
             shopService: _shopService,
           ),
         ),
-      );
+      ); // Navigate to the ProfileCardEdit page for other roles
     }
   }
 
+  // Method to copy the user ID to the clipboard
   Future<void> _copyUserIdToClipboard() async {
     if (_userId != null) {
-      await Clipboard.setData(ClipboardData(text: _userId!));
+      await Clipboard.setData(ClipboardData(text: _userId!)); // Copy user ID to clipboard
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('User ID copied to clipboard!'),
+          content: Text('User ID copied to clipboard!'), // Show confirmation message
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('No User ID to copy.'),
+          content: Text('No User ID to copy.'), // Show error message if no user ID
         ),
       );
     }
   }
 
+  // Method to navigate to the Planet Pals page
   void _navigateToPlanetPals() {
     Navigator.push(
       context,
@@ -172,10 +184,10 @@ class _AnSettingsState extends State<AnSettings> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: const Text('Settings'), // App bar title
       ),
       body: RefreshIndicator(
-        onRefresh: _loadUserData,
+        onRefresh: _loadUserData, // Refresh user data when pulled down
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: ListView(
@@ -184,13 +196,14 @@ class _AnSettingsState extends State<AnSettings> {
                 child: Column(
                   children: [
                     GestureDetector(
-                      onTap: _handleProfileImageTap,
+                      onTap: _handleProfileImageTap, // Handle profile image tap
                       child: CircleAvatar(
                         radius: 50,
                         backgroundImage: _profileImageUrl != null
                             ? (_userRole == UserService.ECO_ADVOCATE
-                                ? NetworkImage(_profileImageUrl!)
-                                : AssetImage(_profileImageUrl!))
+                                ? NetworkImage(_profileImageUrl!) // Use network image for Eco Advocates
+                                : AssetImage(_profileImageUrl!) // Use asset image for other roles
+                            )
                             : null,
                         child: _profileImageUrl == null
                             ? const Icon(
@@ -203,7 +216,7 @@ class _AnSettingsState extends State<AnSettings> {
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      _user?.displayName ?? 'User',
+                      _user?.displayName ?? 'User', // Display user name or 'User' if not available
                       style: const TextStyle(fontSize: 16),
                     ),
                     const SizedBox(height: 10),
@@ -211,14 +224,14 @@ class _AnSettingsState extends State<AnSettings> {
                       children: [
                         Expanded(
                           child: Text(
-                            _user?.uid ?? 'User ID',
+                            _user?.uid ?? 'User ID', // Display user ID or 'User ID' if not available
                             style: const TextStyle(fontSize: 14),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         IconButton(
                           icon: const Icon(Icons.copy),
-                          onPressed: _copyUserIdToClipboard,
+                          onPressed: _copyUserIdToClipboard, // Copy user ID to clipboard on button press
                         ),
                       ],
                     ),
@@ -234,7 +247,7 @@ class _AnSettingsState extends State<AnSettings> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const AnEcoAdvocateForm()),
-                    );
+                    ); // Navigate to the Eco-Advocate application form for members
                   },
                 ),
               ],
@@ -245,14 +258,14 @@ class _AnSettingsState extends State<AnSettings> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const AccessibilityMenu()),
-                  );
+                  ); // Navigate to the Accessibility Settings page
                 },
               ),
               if (_userRole != UserService.ECO_ADVOCATE) ...[
                 ListTile(
                   leading: const Icon(Icons.people),
                   title: const Text('Planet Pals'),
-                  onTap: _navigateToPlanetPals,
+                  onTap: _navigateToPlanetPals, // Navigate to the Planet Pals page
                 ),
                 ListTile(
                   leading: const Icon(Icons.celebration),
@@ -261,7 +274,7 @@ class _AnSettingsState extends State<AnSettings> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const AchievementsPage()),
-                    );
+                    ); // Navigate to the Achievements page
                   },
                 ),
               ],
@@ -271,14 +284,14 @@ class _AnSettingsState extends State<AnSettings> {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const CreditsPage()), // Navigate to CreditsPage
+                    MaterialPageRoute(builder: (context) => const CreditsPage()), // Navigate to the Credits page
                   );
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.logout, color: Colors.red),
                 title: const Text('Logout', style: TextStyle(color: Colors.red)),
-                onTap: _showLogoutConfirmation,
+                onTap: _showLogoutConfirmation, // Show logout confirmation dialog
               ),
             ],
           ),

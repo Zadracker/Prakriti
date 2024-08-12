@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:prakriti/services/auth_service.dart';
 import 'package:prakriti/web_screens/landing_page.dart';
 import 'package:prakriti/web_screens/web_authentication/web_signup.dart';
-import 'package:prakriti/web_screens/web_authentication/web_password_reset.dart'; // Import the new file
+import 'package:prakriti/web_screens/web_authentication/web_password_reset.dart'; // Import the password reset screen
 import '../web_scaffold.dart';
 
 class WebLogin extends StatefulWidget {
@@ -20,6 +20,7 @@ class _WebLoginState extends State<WebLogin> {
   bool _isLoading = false;
   String? _errorMessage;
 
+  // Handle login functionality
   Future<void> _login() async {
     setState(() {
       _isLoading = true;
@@ -27,6 +28,7 @@ class _WebLoginState extends State<WebLogin> {
     });
 
     try {
+      // Sign in with email and password using AuthService
       UserCredential? userCredential = await _authService.signInWithEmailAndPassword(
         _emailController.text.trim(),
         _passwordController.text.trim(),
@@ -35,12 +37,14 @@ class _WebLoginState extends State<WebLogin> {
       if (userCredential != null) {
         User? user = userCredential.user;
         if (user != null && !user.emailVerified) {
+          // Send email verification if email is not verified
           await _authService.sendEmailVerification(user);
           setState(() {
             _errorMessage = 'Please verify your email. A verification email has been sent.';
           });
           await _authService.signOut(); // Sign out the user after sending verification email
         } else {
+          // Navigate to the main application screen
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const WebScaffold()),

@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:prakriti/models/profile_assets.dart';
-import 'package:prakriti/services/profile_service.dart';
-import 'package:prakriti/services/shop_service.dart';
-import 'package:prakriti/commons/profile_settings.dart';
+import 'package:prakriti/models/profile_assets.dart'; // Import the profile assets model
+import 'package:prakriti/services/profile_service.dart'; // Import the service for profile-related operations
+import 'package:prakriti/services/shop_service.dart'; // Import the service for shop-related operations
+import 'package:prakriti/commons/profile_settings.dart'; // Import the profile settings page
 
+// ProfileCardEdit is a StatefulWidget that allows users to edit their profile and background images
 class ProfileCardEdit extends StatefulWidget {
-  final ProfileService profileService;
-  final ShopService shopService;
+  final ProfileService profileService; // Service for managing profile data
+  final ShopService shopService; // Service for managing shop-related operations
 
   const ProfileCardEdit({super.key, required this.profileService, required this.shopService});
 
@@ -15,22 +16,25 @@ class ProfileCardEdit extends StatefulWidget {
 }
 
 class _ProfileCardEditState extends State<ProfileCardEdit> {
-  late String _profileImage;
-  late String _backgroundImage;
+  late String _profileImage; // Holds the current profile image URL
+  late String _backgroundImage; // Holds the current background image URL
 
   @override
   void initState() {
     super.initState();
+    // Initialize profile and background images from the profile service
     _profileImage = widget.profileService.profileImage;
     _backgroundImage = widget.profileService.backgroundImage;
   }
 
+  // Updates the profile image and triggers a rebuild
   void _updateProfileImage(String image) {
     setState(() {
       _profileImage = image;
     });
   }
 
+  // Updates the background image and triggers a rebuild
   void _updateBackgroundImage(String image) {
     setState(() {
       _backgroundImage = image;
@@ -44,8 +48,8 @@ class _ProfileCardEditState extends State<ProfileCardEdit> {
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Profile'),
-        elevation: 4.0,
+        title: const Text('Edit Profile'), // Title of the page
+        elevation: 4.0, // Elevation of the app bar
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -56,12 +60,13 @@ class _ProfileCardEditState extends State<ProfileCardEdit> {
             Center(
               child: GestureDetector(
                 onTap: () async {
+                  // Navigate to the profile image selection page
                   final selectedImage = await Navigator.push<String>(
                     context,
                     MaterialPageRoute(
                       builder: (context) => ProfileImageSelectionPage(
                         currentProfileImage: _profileImage,
-                        onSelect: _updateProfileImage,
+                        onSelect: _updateProfileImage, // Callback to update profile image
                         profileService: widget.profileService,
                         shopService: widget.shopService,
                       ),
@@ -69,17 +74,17 @@ class _ProfileCardEditState extends State<ProfileCardEdit> {
                   );
                   if (selectedImage != null) {
                     setState(() {
-                      _profileImage = selectedImage;
+                      _profileImage = selectedImage; // Update profile image
                     });
                   }
                 },
                 child: CircleAvatar(
-                  radius: screenWidth > 600 ? 120 : 80, // Responsive size
+                  radius: screenWidth > 600 ? 120 : 80, // Responsive size based on screen width
                   backgroundImage: _profileImage == ProfileService.defaultProfileImage
                       ? null
-                      : AssetImage(ProfileAssets.getAssetPath(_profileImage)),
+                      : AssetImage(ProfileAssets.getAssetPath(_profileImage)), // Display the profile image
                   child: _profileImage == ProfileService.defaultProfileImage
-                      ? Icon(Icons.account_circle, size: screenWidth > 600 ? 120 : 80)
+                      ? Icon(Icons.account_circle, size: screenWidth > 600 ? 120 : 80) // Default icon if no profile image
                       : null,
                 ),
               ),
@@ -88,12 +93,13 @@ class _ProfileCardEditState extends State<ProfileCardEdit> {
             // Background Image Section
             GestureDetector(
               onTap: () async {
+                // Navigate to the background image selection page
                 final selectedBackground = await Navigator.push<String>(
                   context,
                   MaterialPageRoute(
                     builder: (context) => BackgroundSelectionPage(
                       currentBackgroundImage: _backgroundImage,
-                      onSelect: _updateBackgroundImage,
+                      onSelect: _updateBackgroundImage, // Callback to update background image
                       profileService: widget.profileService,
                       shopService: widget.shopService,
                     ),
@@ -101,19 +107,19 @@ class _ProfileCardEditState extends State<ProfileCardEdit> {
                 );
                 if (selectedBackground != null) {
                   setState(() {
-                    _backgroundImage = selectedBackground;
+                    _backgroundImage = selectedBackground; // Update background image
                   });
                 }
               },
               child: Container(
-                height: screenWidth > 600 ? 300 : 200, // Responsive size
+                height: screenWidth > 600 ? 300 : 200, // Responsive height based on screen width
                 width: screenWidth * 0.8, // 80% of screen width
                 decoration: BoxDecoration(
                   image: DecorationImage(
                     image: _backgroundImage == ProfileService.defaultBackgroundImage
                         ? const AssetImage(ProfileService.defaultBackgroundImage)
-                        : AssetImage(ProfileAssets.getAssetPath(_backgroundImage)),
-                    fit: BoxFit.cover,
+                        : AssetImage(ProfileAssets.getAssetPath(_backgroundImage)), // Display the background image
+                    fit: BoxFit.cover, // Cover the entire container
                   ),
                   borderRadius: BorderRadius.circular(8.0), // Rounded corners
                 ),
@@ -121,7 +127,7 @@ class _ProfileCardEditState extends State<ProfileCardEdit> {
                     ? Center(
                         child: Text(
                           'Select Background',
-                          style: TextStyle(color: Colors.white, fontSize: screenWidth > 600 ? 24 : 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: Colors.white, fontSize: screenWidth > 600 ? 24 : 18, fontWeight: FontWeight.bold), // Text style
                         ),
                       )
                     : null,
@@ -131,22 +137,22 @@ class _ProfileCardEditState extends State<ProfileCardEdit> {
             // Save Changes Button
             Center(
               child: SizedBox(
-                width: screenWidth > 600 ? 200 : 150, // Responsive width
+                width: screenWidth > 600 ? 200 : 150, // Responsive width based on screen width
                 child: ElevatedButton(
                   onPressed: () {
-                    // Update the profile with the new images
+                    // Update the profile with the new images and save changes
                     widget.profileService.setProfileImage(_profileImage);
                     widget.profileService.setBackgroundImage(_backgroundImage);
-                    widget.profileService.updateUserProfile();
-                    Navigator.pop(context);
+                    widget.profileService.updateUserProfile(); // Save profile changes
+                    Navigator.pop(context); // Return to previous screen
                   },
                   style: ElevatedButton.styleFrom(
                     foregroundColor: Colors.white,
                     backgroundColor: Colors.green, // Button color
-                    padding: const EdgeInsets.symmetric(vertical: 14.0),
-                    textStyle: const TextStyle(fontSize: 16.0),
+                    padding: const EdgeInsets.symmetric(vertical: 14.0), // Button padding
+                    textStyle: const TextStyle(fontSize: 16.0), // Text style
                   ),
-                  child: const Text('Save Changes'),
+                  child: const Text('Save Changes'), // Button text
                 ),
               ),
             ),

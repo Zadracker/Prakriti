@@ -10,6 +10,7 @@ import 'package:prakriti/services/accessibility_preferences_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+// Main widget for the Web Tasks page
 class WebTasksPage extends StatefulWidget {
   final ValueNotifier<int> pointsNotifier;
 
@@ -26,22 +27,24 @@ class _WebTasksPageState extends State<WebTasksPage> with SingleTickerProviderSt
   final PointsService _pointsService = PointsService();
   final AccessibilityPreferencesService _accessibilityService = AccessibilityPreferencesService();
 
-  User? _currentUser;
-  TabController? _tabController;
-  String _fontSize = '1X'; // Default font size
-  String _fontType = 'Default'; // Default font type
-  bool _readAloud = false; // Default text-to-speech setting
+  User? _currentUser; // Current logged-in user
+  TabController? _tabController; // Controller for tab navigation
+  String _fontSize = '1X'; // Default font size setting
+  String _fontType = 'Default'; // Default font type setting
+  bool _readAloud = false; // Text-to-speech setting
 
   final FlutterTts _flutterTts = FlutterTts(); // Text-to-Speech instance
+  bool _showBanner = true; // Flag to control the visibility of the banner
 
   @override
   void initState() {
     super.initState();
     _currentUser = FirebaseAuth.instance.currentUser;
-    _dailyTaskService.generateDailyTasks();
-    _loadAccessibilityPreferences();
+    _dailyTaskService.generateDailyTasks(); // Generate daily tasks
+    _loadAccessibilityPreferences(); // Load user accessibility preferences
   }
 
+  // Load user accessibility preferences
   Future<void> _loadAccessibilityPreferences() async {
     final preferences = await _accessibilityService.getUserPreferences(FirebaseAuth.instance.currentUser!.uid);
     setState(() {
@@ -51,8 +54,9 @@ class _WebTasksPageState extends State<WebTasksPage> with SingleTickerProviderSt
     });
     // Update TabController after preferences are loaded
     _updateTabController();
-    }
+  }
 
+  // Update the TabController based on user's status as an Eco Advocate
   void _updateTabController() {
     if (_currentUser != null) {
       _userService.isEcoAdvocate().then((isEcoAdvocate) {
@@ -85,6 +89,30 @@ class _WebTasksPageState extends State<WebTasksPage> with SingleTickerProviderSt
         }
 
         return Scaffold(
+          // Display a banner if needed
+          drawer: _showBanner
+              ? Container(
+                  color: Colors.blueAccent,
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Double tap to mark daily tasks as complete',
+                        style: TextStyle(color: Colors.white, fontSize: 16),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white),
+                        onPressed: () {
+                          setState(() {
+                            _showBanner = false; // Hide the banner when close button is pressed
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                )
+              : null,
           body: Column(
             children: [
               Container(
@@ -126,6 +154,7 @@ class _WebTasksPageState extends State<WebTasksPage> with SingleTickerProviderSt
     );
   }
 
+  // Builds the list of daily tasks
   Widget _buildDailyTasks(TextStyle textStyle) {
     return StreamBuilder<QuerySnapshot>(
       stream: _dailyTaskService.getDailyTasksStream(),
@@ -159,8 +188,8 @@ class _WebTasksPageState extends State<WebTasksPage> with SingleTickerProviderSt
             taskData['taskId'] = task.id;
 
             return GestureDetector(
-              onDoubleTap: () => _completeTask(taskData, task.id),
-              onTap: () => _speakText(taskData['task']),
+              onDoubleTap: () => _completeTask(taskData, task.id), // Mark task as complete on double tap
+              onTap: () => _speakText(taskData['task']), // Read task text aloud on single tap
               child: ListTile(
                 title: Text(taskData['task'], style: textStyle),
                 trailing: Text('${taskData['points']} points', style: textStyle),
@@ -172,6 +201,7 @@ class _WebTasksPageState extends State<WebTasksPage> with SingleTickerProviderSt
     );
   }
 
+  // Builds the list of special tasks
   Widget _buildTaskList(bool isEcoAdvocate, TextStyle textStyle) {
     return StreamBuilder<QuerySnapshot>(
       stream: _taskCreationService.getTasks(),
@@ -218,7 +248,7 @@ class _WebTasksPageState extends State<WebTasksPage> with SingleTickerProviderSt
                   : Text('${taskData['points']} points', style: textStyle),
               onTap: () {
                 if (!isEcoAdvocate) {
-                  _speakText(taskData['title']);
+                  _speakText(taskData['title']); // Read task title aloud on tap
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -234,6 +264,7 @@ class _WebTasksPageState extends State<WebTasksPage> with SingleTickerProviderSt
     );
   }
 
+  // Mark a daily task as complete and award points
   Future<void> _completeTask(Map<String, dynamic> taskData, String taskId) async {
     if (_currentUser == null) {
       return;
@@ -252,6 +283,7 @@ class _WebTasksPageState extends State<WebTasksPage> with SingleTickerProviderSt
     );
   }
 
+  // Delete a special task
   Future<void> _deleteTask(String taskId) async {
     await _taskCreationService.deleteTask(taskId);
     ScaffoldMessenger.of(context).showSnackBar(
@@ -262,6 +294,7 @@ class _WebTasksPageState extends State<WebTasksPage> with SingleTickerProviderSt
     );
   }
 
+  // Read text aloud if the setting is enabled
   Future<void> _speakText(String text) async {
     if (_readAloud) {
       await _flutterTts.setLanguage('en-US');

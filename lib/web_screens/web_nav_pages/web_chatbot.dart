@@ -5,6 +5,7 @@ import 'package:prakriti/services/chatbot_service.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:prakriti/services/accessibility_preferences_service.dart';
 
+/// This is the main widget for the chatbot page on the web.
 class WebChatbotPage extends StatefulWidget {
   const WebChatbotPage({super.key});
 
@@ -13,30 +14,39 @@ class WebChatbotPage extends StatefulWidget {
 }
 
 class _WebChatbotPageState extends State<WebChatbotPage> {
+  // Controller to manage the text input field
   final TextEditingController _controller = TextEditingController();
+
+  // List to store messages for display
   final List<String> _messages = [];
+
+  // Services for chatbot interactions and user preferences
   final ChatbotService _chatbotService = ChatbotService();
   final AccessibilityPreferencesService _preferencesService = AccessibilityPreferencesService();
+
+  // Flags for loading state, speech-to-text, and typing status
   bool _isLoading = false;
   late stt.SpeechToText _speech;
   bool _isListening = false;
-  String _font = 'OpenSans';
-  double _fontSize = 14.0;
-  bool _readAloud = false;
-  bool _isTyping = false;
+  String _font = 'OpenSans';  // Default font
+  double _fontSize = 14.0;    // Default font size
+  bool _readAloud = false;   // Whether to read responses aloud
+  bool _isTyping = false;    // Whether the user is typing
 
   @override
   void initState() {
     super.initState();
-    _speech = stt.SpeechToText();
-    _fetchUserPreferences();
+    _speech = stt.SpeechToText();  // Initialize speech-to-text
+    _fetchUserPreferences();       // Fetch user preferences on startup
     _controller.addListener(() {
+      // Update typing status based on whether the text field is empty
       setState(() {
         _isTyping = _controller.text.isNotEmpty;
       });
     });
   }
 
+  /// Fetches user preferences from the database and updates the state.
   Future<void> _fetchUserPreferences() async {
     try {
       User? user = FirebaseAuth.instance.currentUser;
@@ -45,21 +55,23 @@ class _WebChatbotPageState extends State<WebChatbotPage> {
         final preferences = await _preferencesService.getUserPreferences(userId);
 
         setState(() {
+          // Apply preferences or use defaults
           _font = preferences['font'] ?? 'OpenSans';
           _fontSize = (preferences['fontSize'] ?? 1) * 14.0; // Adjust base font size as needed
           _readAloud = preferences['readAloud'] ?? false;
         });
-      } else {
       }
     } catch (e) {
+      // Handle errors if necessary
     }
   }
 
+  /// Sends a message to the chatbot and handles the response.
   void _sendMessage() async {
     if (_controller.text.isEmpty) return;
 
     setState(() {
-      _messages.add("User: ${_controller.text}");
+      _messages.add("User: ${_controller.text}");  // Add user message to list
       _isLoading = true;
       _isTyping = false;
     });
@@ -68,17 +80,18 @@ class _WebChatbotPageState extends State<WebChatbotPage> {
     var response = await _chatbotService.sendMessage(userMessage);
 
     setState(() {
-      _messages.add("Bot: $response");
+      _messages.add("Bot: $response");  // Add bot response to list
       _isLoading = false;
     });
 
     _controller.clear();
 
     if (_readAloud) {
-      _speak(response);
+      _speak(response);  // Read aloud if preference is set
     }
   }
 
+  /// Placeholder function for text-to-speech functionality.
   void _speak(String text) {
     // Implement text-to-speech functionality here
     // For example, using the flutter_tts package:
@@ -86,9 +99,9 @@ class _WebChatbotPageState extends State<WebChatbotPage> {
     // flutterTts.speak(text);
   }
 
+  /// Starts listening for voice input and updates the text field.
   void _startListening() async {
-    bool available = await _speech.initialize(
-    );
+    bool available = await _speech.initialize();
     if (available) {
       setState(() => _isListening = true);
       _speech.listen(
@@ -99,11 +112,13 @@ class _WebChatbotPageState extends State<WebChatbotPage> {
     }
   }
 
+  /// Stops listening for voice input.
   void _stopListening() {
     setState(() => _isListening = false);
     _speech.stop();
   }
 
+  /// Applies a recommendation to the text field.
   void _applyRecommendation(String recommendation) {
     setState(() {
       _controller.text = recommendation;
@@ -174,7 +189,7 @@ class _WebChatbotPageState extends State<WebChatbotPage> {
                 ),
               ),
               if (_isLoading)
-                const LinearProgressIndicator(),
+                const LinearProgressIndicator(), // Show loading indicator while processing
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Column(
@@ -227,22 +242,22 @@ class _WebChatbotPageState extends State<WebChatbotPage> {
                               labelText: 'Enter your message',
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(30.0),
-                                borderSide: const BorderSide(color: Colors.white), // Default border color
+                                borderSide: const BorderSide(color: Colors.white),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(30.0),
-                                borderSide: const BorderSide(color: Colors.green), // Border color when focused
+                                borderSide: const BorderSide(color: Colors.green),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(30.0),
-                                borderSide: const BorderSide(color: Colors.white), // Border color when enabled
+                                borderSide: const BorderSide(color: Colors.white),
                               ),
                               contentPadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
                             ),
                             style: TextStyle(
                               fontSize: _fontSize,
                               fontFamily: _font,
-                              color: Colors.white, // Text color
+                              color: Colors.white,
                             ),
                           ),
                         ),

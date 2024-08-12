@@ -21,7 +21,7 @@ class _WebSignupState extends State<WebSignup> {
   String? _errorMessage;
   File? _profileImage;
 
-
+  // Method to handle user signup
   Future<void> _signup() async {
     if (_passwordController.text != _confirmPasswordController.text) {
       setState(() {
@@ -64,7 +64,7 @@ class _WebSignupState extends State<WebSignup> {
         );
       } else {
         setState(() {
-          _errorMessage = 'Signup failed. Please try again. check e-mail';
+          _errorMessage = 'Signup failed. Please try again. Check e-mail';
         });
       }
     } on FirebaseAuthException catch (e) {

@@ -24,6 +24,7 @@ class _AnTaskPageState extends State<AnTaskPage> with SingleTickerProviderStateM
   final PointsService _pointsService = PointsService(); // Instantiate PointsService
   User? _currentUser;
   late TabController _tabController;
+  bool _showBanner = true; // Control banner visibility
 
   @override
   void initState() {
@@ -47,28 +48,58 @@ class _AnTaskPageState extends State<AnTaskPage> with SingleTickerProviderStateM
         final isEcoAdvocate = snapshot.data!;
 
         return Scaffold(
-          body: isEcoAdvocate
-              ? _buildTaskList(context, isEcoAdvocate)
-              : Column(
-                  children: [
-                    TabBar(
-                      controller: _tabController,
-                      tabs: const [
-                        Tab(text: 'Daily Tasks'),
-                        Tab(text: 'Special Tasks'),
-                      ],
-                    ),
-                    Expanded(
-                      child: TabBarView(
-                        controller: _tabController,
+          body: Column(
+            children: [
+              // Display removable banner if _showBanner is true
+              if (_showBanner)
+                Container(
+                  color: Colors.green,
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Double tap to mark daily task as complete',
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () {
+                          setState(() {
+                            _showBanner = false; // Hide banner when close button is pressed
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              Expanded(
+                child: isEcoAdvocate
+                    ? _buildTaskList(context, isEcoAdvocate)
+                    : Column(
                         children: [
-                          _buildDailyTasks(context),
-                          _buildTaskList(context, isEcoAdvocate),
+                          TabBar(
+                            controller: _tabController,
+                            tabs: const [
+                              Tab(text: 'Daily Tasks'),
+                              Tab(text: 'Special Tasks'),
+                            ],
+                          ),
+                          Expanded(
+                            child: TabBarView(
+                              controller: _tabController,
+                              children: [
+                                _buildDailyTasks(context),
+                                _buildTaskList(context, isEcoAdvocate),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
-                    ),
-                  ],
-                ),
+              ),
+            ],
+          ),
           floatingActionButton: isEcoAdvocate
               ? FloatingActionButton(
                   onPressed: () => Navigator.push(
@@ -196,7 +227,7 @@ class _AnTaskPageState extends State<AnTaskPage> with SingleTickerProviderStateM
               subtitle: Text('${taskData['points']} points'),
               trailing: isEcoAdvocate
                   ? IconButton(
-                      icon: const Icon(Icons.delete, color:Colors.red),
+                      icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () => _deleteTask(context, task.id),
                     )
                   : null,

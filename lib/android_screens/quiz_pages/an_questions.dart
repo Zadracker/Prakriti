@@ -16,49 +16,60 @@ class _AnQuestionsState extends State<AnQuestions> {
   final QuizCompletionService _quizCompletionService = QuizCompletionService();
   final List<TextEditingController> _answerControllers = [];
   final stt.SpeechToText _speech = stt.SpeechToText();
-  bool _isListening = false;
-  bool _loading = true;
-  bool _isSubmitting = false;
-  List<Map<String, dynamic>> _questions = [];
-  int _currentQuestionIndex = 0;
-  int _totalQuestions = 0;
+  bool _isListening = false; // Tracks whether the app is listening to speech input
+  bool _loading = true; // Tracks whether questions are still loading
+  bool _isSubmitting = false; // Tracks whether an answer is currently being submitted
+  List<Map<String, dynamic>> _questions = []; // List to hold questions
+  int _currentQuestionIndex = 0; // Index of the current question
+  int _totalQuestions = 0; // Total number of questions
 
   @override
   void initState() {
     super.initState();
-    _loadQuestions();
+    _loadQuestions(); // Load questions when the widget initializes
   }
 
+  // Loads quiz questions from Firestore based on the current date
   Future<void> _loadQuestions() async {
     final today = DateTime.now();
     final collectionName = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
-    final questionsSnapshot = await FirebaseFirestore.instance
-        .collection('quiz_questions')
-        .doc(collectionName)
-        .collection('questions')
-        .orderBy('seq_no')
-        .get();
 
-    setState(() {
-      _questions = questionsSnapshot.docs.map((doc) {
-        final data = doc.data();
-        _answerControllers.add(TextEditingController());
-        return {
-          'id': doc.id,
-          'question': data['question'],
-          'seq_no': data['seq_no'],
-        };
-      }).toList();
-      _totalQuestions = _questions.length;
-      _loading = false;
-    });
+    try {
+      final questionsSnapshot = await FirebaseFirestore.instance
+          .collection('quiz_questions')
+          .doc(collectionName)
+          .collection('questions')
+          .orderBy('seq_no')
+          .get();
 
-    await _quizCompletionService.startQuiz();
+      setState(() {
+        _questions = questionsSnapshot.docs.map((doc) {
+          final data = doc.data();
+          _answerControllers.add(TextEditingController()); // Add a controller for each question
+          return {
+            'id': doc.id,
+            'question': data['question'],
+            'seq_no': data['seq_no'],
+          };
+        }).toList();
+        _totalQuestions = _questions.length; // Update total number of questions
+        _loading = false; // Set loading to false after questions are loaded
+      });
+
+      await _quizCompletionService.startQuiz(); // Notify the service that the quiz has started
+    } catch (e) {
+      // Handle potential errors while loading questions
+      setState(() {
+        _loading = false; // Stop loading if there's an error
+      });
+      print('Error loading questions: $e');
+    }
   }
 
+  // Submits the current answer and processes the result
   Future<void> _submitAnswer() async {
     setState(() {
-      _isSubmitting = true;
+      _isSubmitting = true; // Set submitting state to true
     });
 
     final user = FirebaseAuth.instance.currentUser;
@@ -68,7 +79,7 @@ class _AnQuestionsState extends State<AnQuestions> {
 
     if (_currentQuestionIndex >= _totalQuestions) {
       setState(() {
-        _isSubmitting = false;
+        _isSubmitting = false; // Stop submitting if there are no more questions
       });
       return;
     }
@@ -76,51 +87,60 @@ class _AnQuestionsState extends State<AnQuestions> {
     final userAnswer = _answerControllers[_currentQuestionIndex].text.trim();
     final question = _questions[_currentQuestionIndex]['question'];
 
-    final result = await _quizCompletionService.submitAnswer(question, userAnswer);
+    try {
+      final result = await _quizCompletionService.submitAnswer(question, userAnswer);
 
-    final isCorrect = result['isCorrect'] as bool;
-    final explanation = result['explanation'] as String;
+      final isCorrect = result['isCorrect'] as bool;
+      final explanation = result['explanation'] as String;
 
-    if (!isCorrect) {
-      showDialog(
-        context: context,
-        builder: (context) => ExplanationPage(
-          explanation: explanation,
-          onNext: () {
-            setState(() {
-              _isSubmitting = false;
-              _currentQuestionIndex++;
-              if (_currentQuestionIndex >= _totalQuestions) {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const AnResultsPage()),
-                );
-              } else {
-                Navigator.pop(context);
-              }
-            });
-          },
-        ),
-      );
-    } else {
+      if (!isCorrect) {
+        // If the answer is incorrect, show an explanation dialog
+        showDialog(
+          context: context,
+          builder: (context) => ExplanationPage(
+            explanation: explanation,
+            onNext: () {
+              setState(() {
+                _isSubmitting = false;
+                _currentQuestionIndex++;
+                if (_currentQuestionIndex >= _totalQuestions) {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AnResultsPage()),
+                  );
+                } else {
+                  Navigator.pop(context); // Close the dialog and show the next question
+                }
+              });
+            },
+          ),
+        );
+      } else {
+        setState(() {
+          _isSubmitting = false;
+          if (_currentQuestionIndex < _totalQuestions - 1) {
+            _currentQuestionIndex++;
+          } else {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const AnResultsPage()),
+            );
+          }
+        });
+      }
+    } catch (e) {
+      // Handle potential errors while submitting the answer
       setState(() {
-        _isSubmitting = false;
-        if (_currentQuestionIndex < _totalQuestions - 1) {
-          _currentQuestionIndex++;
-        } else {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const AnResultsPage()),
-          );
-        }
+        _isSubmitting = false; // Stop submitting if there's an error
       });
+      print('Error submitting answer: $e');
     }
   }
 
+  // Toggles speech-to-text functionality
   void _listen() async {
     if (!_isListening) {
-      bool available = await _speech.initialize(
-      );
+      bool available = await _speech.initialize();
       if (available) {
         setState(() => _isListening = true);
         _speech.listen(
@@ -138,6 +158,7 @@ class _AnQuestionsState extends State<AnQuestions> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
+      // Show a loading spinner while questions are loading
       return Scaffold(
         appBar: AppBar(title: const Text('Daily Eco-Quiz')),
         body: const Center(child: CircularProgressIndicator()),
@@ -150,7 +171,7 @@ class _AnQuestionsState extends State<AnQuestions> {
     return Scaffold(
       appBar: AppBar(
         title: const Center(child: Text('Daily Eco-Quiz')),
-        automaticallyImplyLeading: false,
+        automaticallyImplyLeading: false, // Disable back button
         elevation: 0,
       ),
       body: Padding(
@@ -158,7 +179,7 @@ class _AnQuestionsState extends State<AnQuestions> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            LinearProgressIndicator(value: progress),
+            LinearProgressIndicator(value: progress), // Display quiz progress
             const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -188,7 +209,7 @@ class _AnQuestionsState extends State<AnQuestions> {
                       children: [
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: _isSubmitting ? null : _submitAnswer,
+                            onPressed: _isSubmitting ? null : _submitAnswer, // Disable button while submitting
                             child: _isSubmitting
                                 ? const CircularProgressIndicator(
                                     valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
@@ -199,7 +220,7 @@ class _AnQuestionsState extends State<AnQuestions> {
                         const SizedBox(width: 10),
                         IconButton(
                           icon: Icon(_isListening ? Icons.mic : Icons.mic_none),
-                          onPressed: _listen,
+                          onPressed: _listen, // Toggle speech-to-text
                         ),
                       ],
                     ),
@@ -232,7 +253,7 @@ class ExplanationPage extends StatelessWidget {
       ),
       actions: [
         TextButton(
-          onPressed: onNext,
+          onPressed: onNext, // Proceed to the next question
           child: const Text('Next Question'),
         ),
       ],

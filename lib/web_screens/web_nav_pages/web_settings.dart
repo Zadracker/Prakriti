@@ -26,15 +26,21 @@ class WebSettings extends StatefulWidget {
 }
 
 class _WebSettingsState extends State<WebSettings> {
+  // Current user information
   User? _user;
   String? _profileImageUrl;
   String? _userRole;
   String? _userId;
+
+  // User preferences
   int _fontSize = 1;
   String _font = 'OpenSans';
   bool _readAloud = false;
+
+  // FlutterTts instance for text-to-speech
   final FlutterTts _flutterTts = FlutterTts();
 
+  // Service instances
   final UserService _userService = UserService();
   final AuthService _authService = AuthService();
   final AccessibilityPreferencesService _preferencesService = AccessibilityPreferencesService();
@@ -49,13 +55,16 @@ class _WebSettingsState extends State<WebSettings> {
     _loadUserPreferences();
   }
 
+  // Load user data from Firestore
   Future<void> _loadUserData() async {
     if (_user != null) {
       try {
+        // Fetch user document from Firestore
         DocumentSnapshot<Map<String, dynamic>> userDoc = await _userService.getUser(_user!.uid);
         String? userRole = userDoc.data()?['role'];
         String? profileImageUrl;
 
+        // Determine profile image URL based on user role
         if (userRole != null) {
           if (userRole == UserService.ECO_ADVOCATE) {
             profileImageUrl = userDoc.data()?['profileImageUrl'];
@@ -75,10 +84,12 @@ class _WebSettingsState extends State<WebSettings> {
           _profileService = ProfileService(userId: _userId!);
         });
       } catch (e) {
+        // Handle any errors that occur during data retrieval
       }
     }
   }
 
+  // Load user preferences from Firestore
   Future<void> _loadUserPreferences() async {
     if (_user != null) {
       final preferences = await _preferencesService.getUserPreferences(_user!.uid);
@@ -90,8 +101,10 @@ class _WebSettingsState extends State<WebSettings> {
     }
   }
 
+  // Pick and upload a new profile image
   Future<void> _pickAndUploadProfileImage() async {
     try {
+      // Allow the user to pick an image file
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.image,
       );
@@ -99,6 +112,7 @@ class _WebSettingsState extends State<WebSettings> {
       if (result != null && result.files.single.bytes != null) {
         Uint8List fileBytes = result.files.single.bytes!;
 
+        // Upload the picked image and update the user's profile image URL
         String downloadUrl = await _userService.uploadEcoAdvocateProfileImage(_user!.uid, fileBytes);
         await FirebaseFirestore.instance.collection('users').doc(_user!.uid).update({
           'profileImageUrl': downloadUrl,
@@ -108,9 +122,11 @@ class _WebSettingsState extends State<WebSettings> {
         });
       }
     } catch (e) {
+      // Handle any errors that occur during file picking or uploading
     }
   }
 
+  // Show a confirmation dialog for logging out
   Future<void> _showLogoutConfirmation() async {
     bool? confirmLogout = await showDialog<bool>(
       context: context,
@@ -144,6 +160,7 @@ class _WebSettingsState extends State<WebSettings> {
     }
   }
 
+  // Handle taps on the profile image
   void _handleProfileImageTap() {
     if (_userRole == UserService.ECO_ADVOCATE) {
       _pickAndUploadProfileImage();
@@ -160,12 +177,14 @@ class _WebSettingsState extends State<WebSettings> {
     }
   }
 
+  // Speak the given text if read-aloud is enabled
   void _speak(String text) async {
     if (_readAloud) {
       await _flutterTts.speak(text);
     }
   }
 
+  // Copy text to clipboard and show a snack bar confirmation
   Future<void> _copyToClipboard(String text) async {
     await Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
@@ -175,6 +194,7 @@ class _WebSettingsState extends State<WebSettings> {
 
   @override
   Widget build(BuildContext context) {
+    // Function to adjust text size based on user preferences
     double textSize(double size) {
       switch (_fontSize) {
         case 2:
@@ -246,6 +266,7 @@ class _WebSettingsState extends State<WebSettings> {
               ),
             ),
             SizedBox(height: textSize(20)),
+            // Show the Eco Advocate Application option if the user is a member
             if (_userRole == 'member') ...[
               ListTile(
                 leading: Icon(Icons.person_add, size: textSize(24)),
@@ -286,6 +307,7 @@ class _WebSettingsState extends State<WebSettings> {
                 );
               },
             ),
+            // Show additional options based on user role
             if (_userRole != UserService.ECO_ADVOCATE) ...[
               ListTile(
                 leading: Icon(Icons.group, size: textSize(24)),

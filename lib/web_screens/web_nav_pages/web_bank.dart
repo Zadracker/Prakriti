@@ -11,13 +11,13 @@ class WebBankPage extends StatefulWidget {
 }
 
 class _WebBankPageState extends State<WebBankPage> {
-  final UserService _userService = UserService(); // Create an instance of UserService
-  final PointsService _pointsService = PointsService(); // Create an instance of PointsService
-  final TextEditingController _redeemCodeController = TextEditingController(); // Controller for redeem code
+  final UserService _userService = UserService();
+  final PointsService _pointsService = PointsService();
+  final TextEditingController _redeemCodeController = TextEditingController();
 
   @override
   void dispose() {
-    _redeemCodeController.dispose(); // Dispose of the controller when not needed
+    _redeemCodeController.dispose();
     super.dispose();
   }
 
@@ -29,15 +29,13 @@ class _WebBankPageState extends State<WebBankPage> {
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(32.0), // Fixed padding
+          padding: const EdgeInsets.all(32.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center, // Center align column items
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Large card on top with image
+              // Large card with image
               GestureDetector(
-                onTap: () {
-                  _showSupportPopup(context);
-                },
+                onTap: () => _showSupportPopup(context),
                 child: Card(
                   margin: const EdgeInsets.only(bottom: 32),
                   shape: RoundedRectangleBorder(
@@ -45,8 +43,8 @@ class _WebBankPageState extends State<WebBankPage> {
                   ),
                   elevation: 4,
                   child: Container(
-                    width: MediaQuery.of(context).size.width * 0.4, // Responsive width
-                    height: 300, // Fixed height
+                    width: MediaQuery.of(context).size.width * 0.4,
+                    height: 300,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
                       image: const DecorationImage(
@@ -67,7 +65,7 @@ class _WebBankPageState extends State<WebBankPage> {
                               fontWeight: FontWeight.bold,
                               backgroundColor: Colors.black.withOpacity(0.5),
                             ),
-                            maxLines: 3, // Ensure text fits within card
+                            maxLines: 3,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -77,7 +75,7 @@ class _WebBankPageState extends State<WebBankPage> {
                 ),
               ),
 
-              // Section: Buy more eco_points!! support us!!
+              // Buy more eco-points section
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 32.0),
                 child: Text(
@@ -89,29 +87,44 @@ class _WebBankPageState extends State<WebBankPage> {
                 ),
               ),
 
-              // Row for three square cards
+              // Row for eco-points cards
               Row(
-                mainAxisAlignment: MainAxisAlignment.center, // Center align row items
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Expanded(
-                    child: _buildImageCard(context, 'lib/assets/Bank/eco_points_1.png', 'Buy 100 Eco-Points', 100),
+                    child: _buildImageCard(
+                      context, 
+                      'lib/assets/Bank/eco_points_1.png', 
+                      'Buy 100 Eco-Points', 
+                      100,
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: _buildImageCard(context, 'lib/assets/Bank/eco_points_2.png', 'Buy 500 Eco-Points', 500),
+                    child: _buildImageCard(
+                      context, 
+                      'lib/assets/Bank/eco_points_2.png', 
+                      'Buy 500 Eco-Points', 
+                      500,
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: _buildImageCard(context, 'lib/assets/Bank/eco_points_3.png', 'Buy 2000 Eco-Points', 2000),
+                    child: _buildImageCard(
+                      context, 
+                      'lib/assets/Bank/eco_points_3.png', 
+                      'Buy 2000 Eco-Points', 
+                      2000,
+                    ),
                   ),
                 ],
               ),
 
-              // Section: Redeem code
+              // Redeem code section
               Padding(
                 padding: const EdgeInsets.only(bottom: 32.0),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center, // Center align column items
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const Text(
                       'Redeem Code',
@@ -122,12 +135,12 @@ class _WebBankPageState extends State<WebBankPage> {
                     ),
                     const SizedBox(height: 16),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.center, // Center align row items
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         SizedBox(
-                          width: MediaQuery.of(context).size.width * 0.6, // Responsive width
+                          width: MediaQuery.of(context).size.width * 0.6,
                           child: TextField(
-                            controller: _redeemCodeController, // Use the controller
+                            controller: _redeemCodeController,
                             decoration: const InputDecoration(
                               border: OutlineInputBorder(),
                               labelText: 'Enter your code',
@@ -136,9 +149,7 @@ class _WebBankPageState extends State<WebBankPage> {
                         ),
                         const SizedBox(width: 16),
                         ElevatedButton(
-                          onPressed: () {
-                            _redeemCode(); // Call the method to handle code redemption
-                          },
+                          onPressed: _redeemCode,
                           child: const Text('Redeem'),
                         ),
                       ],
@@ -153,18 +164,18 @@ class _WebBankPageState extends State<WebBankPage> {
     );
   }
 
+  // Builds a card for eco-points purchase
   Widget _buildImageCard(BuildContext context, String imagePath, String text, int ecoPoints) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8.0), // Margin to ensure spacing
+      margin: const EdgeInsets.symmetric(horizontal: 8.0),
       child: GestureDetector(
         onTap: () async {
-          // Example logic to update Enviro-Coins
           try {
-            User? user = FirebaseAuth.instance.currentUser; // Use FirebaseAuth to get the current user
+            User? user = FirebaseAuth.instance.currentUser;
             if (user != null) {
               int currentCoins = await _userService.getUserEnviroCoins(user.uid);
               await _userService.updateEnviroCoins(user.uid, currentCoins + ecoPoints);
-              _showSupportPopup(context); // Show the popup after updating
+              _showSupportPopup(context);
             } else {
               _showErrorPopup(context, 'User not logged in');
             }
@@ -173,7 +184,7 @@ class _WebBankPageState extends State<WebBankPage> {
           }
         },
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center, // Center align column items
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Card(
               shape: RoundedRectangleBorder(
@@ -181,8 +192,8 @@ class _WebBankPageState extends State<WebBankPage> {
               ),
               elevation: 4,
               child: Container(
-                width: double.infinity, // Ensure full width within expanded area
-                height: 180, // Fixed height
+                width: double.infinity,
+                height: 180,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
                   image: DecorationImage(
@@ -194,13 +205,13 @@ class _WebBankPageState extends State<WebBankPage> {
             ),
             const SizedBox(height: 8),
             SizedBox(
-              width: double.infinity, // Ensures text fits within card width
+              width: double.infinity,
               child: Text(
                 text,
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                maxLines: 1, // Ensure text fits within card
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center, // Center align text
+                textAlign: TextAlign.center,
               ),
             ),
           ],
@@ -209,6 +220,7 @@ class _WebBankPageState extends State<WebBankPage> {
     );
   }
 
+  // Redeem code logic
   void _redeemCode() async {
     String code = _redeemCodeController.text.trim();
 
@@ -218,9 +230,9 @@ class _WebBankPageState extends State<WebBankPage> {
     }
 
     try {
-      User? user = FirebaseAuth.instance.currentUser; // Use FirebaseAuth to get the current user
+      User? user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        await _pointsService.redeemSecretCode(user.uid, code); // Call the redeemSecretCode method from PointsService
+        await _pointsService.redeemSecretCode(user.uid, code);
         _showSnackbar('Code redeemed successfully!');
       } else {
         _showErrorPopup(context, 'User not logged in');
@@ -230,6 +242,7 @@ class _WebBankPageState extends State<WebBankPage> {
     }
   }
 
+  // Show support popup
   void _showSupportPopup(BuildContext context) {
     showDialog(
       context: context,
@@ -243,9 +256,7 @@ class _WebBankPageState extends State<WebBankPage> {
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.of(context).pop(),
               child: const Text('OK'),
             ),
           ],
@@ -254,6 +265,7 @@ class _WebBankPageState extends State<WebBankPage> {
     );
   }
 
+  // Show error popup
   void _showErrorPopup(BuildContext context, String message) {
     showDialog(
       context: context,
@@ -263,9 +275,7 @@ class _WebBankPageState extends State<WebBankPage> {
           content: Text(message),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.of(context).pop(),
               child: const Text('OK'),
             ),
           ],
@@ -274,6 +284,7 @@ class _WebBankPageState extends State<WebBankPage> {
     );
   }
 
+  // Show snackbar message
   void _showSnackbar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

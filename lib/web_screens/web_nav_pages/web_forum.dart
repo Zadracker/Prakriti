@@ -18,17 +18,18 @@ class _WebForumPageState extends State<WebForumPage> {
   final UserService _userService = UserService();
   final AccessibilityPreferencesService _preferencesService = AccessibilityPreferencesService();
   String? username;
-  String filter = 'Most Recent';
-  int _fontSize = 1;
-  String _font = 'OpenSans';
+  String filter = 'Most Recent'; // Initial filter for sorting posts
+  int _fontSize = 1; // Default font size
+  String _font = 'OpenSans'; // Default font
 
   @override
   void initState() {
     super.initState();
-    _initializeUser();
-    _loadUserPreferences();
+    _initializeUser(); // Load user information
+    _loadUserPreferences(); // Load user preferences for font size and font
   }
 
+  /// Fetches the current user's information and updates the username.
   Future<void> _initializeUser() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -41,10 +42,12 @@ class _WebForumPageState extends State<WebForumPage> {
           });
         }
       } catch (e) {
+        // Handle any errors that occur while fetching user data
       }
     }
   }
 
+  /// Loads user preferences such as font size and font type.
   Future<void> _loadUserPreferences() async {
     if (FirebaseAuth.instance.currentUser != null) {
       final preferences = await _preferencesService.getUserPreferences(FirebaseAuth.instance.currentUser!.uid);
@@ -57,6 +60,7 @@ class _WebForumPageState extends State<WebForumPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Helper function to adjust text size based on user preferences
     double textSize(double size) {
       switch (_fontSize) {
         case 2:
@@ -71,7 +75,7 @@ class _WebForumPageState extends State<WebForumPage> {
     return Scaffold(
       body: Row(
         children: [
-          // Filter Column
+          // Filter Column: Allows users to select how to sort posts
           Expanded(
             flex: 2,
             child: SingleChildScrollView(
@@ -147,7 +151,7 @@ class _WebForumPageState extends State<WebForumPage> {
               ),
             ),
           ),
-          // Content Column
+          // Content Column: Displays the list of posts based on the selected filter
           Expanded(
             flex: 6,
             child: SingleChildScrollView(
@@ -163,17 +167,17 @@ class _WebForumPageState extends State<WebForumPage> {
                   if (!snapshot.hasData || snapshot.data!.isEmpty) {
                     return const Center(child: Text('No posts available'));
                   }
-              
+
                   final posts = snapshot.data!;
                   final padding = MediaQuery.of(context).size.width * 0.05; // 5% padding from each side
-              
+
                   return ListView.builder(
                     shrinkWrap: true,
                     padding: EdgeInsets.symmetric(horizontal: padding),
                     itemCount: posts.length,
                     itemBuilder: (context, index) {
                       final post = posts[index];
-              
+
                       return PostCard(
                         post: post,
                         username: username,
@@ -205,11 +209,12 @@ class _WebForumPageState extends State<WebForumPage> {
                               ],
                             ),
                           );
-              
+
                           if (confirmDelete == true) {
                             try {
                               await _forumService.deletePost(post.id);
                             } catch (e) {
+                              // Handle any errors that occur while deleting the post
                             }
                           }
                         },
@@ -220,7 +225,7 @@ class _WebForumPageState extends State<WebForumPage> {
               ),
             ),
           ),
-          // Rules Column
+          // Rules Column: Displays the forum rules
           Expanded(
             flex: 2,
             child: SingleChildScrollView(
@@ -265,6 +270,7 @@ class _WebForumPageState extends State<WebForumPage> {
   }
 }
 
+/// Widget for displaying individual posts in the forum.
 class PostCard extends StatelessWidget {
   final Post post;
   final String? username;
@@ -308,7 +314,7 @@ class PostCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image
+            // Display the post image if available
             if (post.imageAttached != null && post.imageAttached!.isNotEmpty)
               SizedBox(
                 height: 200, // Fixed height for image
@@ -336,7 +342,7 @@ class PostCard extends StatelessWidget {
                   },
                 ),
               ),
-            // Title
+            // Display the post title
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(
@@ -348,7 +354,7 @@ class PostCard extends StatelessWidget {
                 ),
               ),
             ),
-            // Author and Date
+            // Display the post author and date
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Text(
@@ -359,7 +365,7 @@ class PostCard extends StatelessWidget {
                 ),
               ),
             ),
-            // Content
+            // Display the post content with truncation
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(
@@ -369,7 +375,7 @@ class PostCard extends StatelessWidget {
                 ),
               ),
             ),
-            // Buttons: Like, Comment, Delete
+            // Buttons for like, comment, and delete actions
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Row(
@@ -399,7 +405,7 @@ class PostCard extends StatelessWidget {
                     },
                   ),
                   Text('${post.commentsCount} Comments'),
-                  // Delete Button
+                  // Delete Button: Only shown if the user is the author of the post
                   if (isAuthor)
                     IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),

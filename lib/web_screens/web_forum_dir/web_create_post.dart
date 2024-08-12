@@ -39,6 +39,7 @@ class _WebCreatePostPageState extends State<WebCreatePostPage> {
     super.dispose();
   }
 
+  // Initialize user details
   Future<void> _initializeUser() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -48,9 +49,11 @@ class _WebCreatePostPageState extends State<WebCreatePostPage> {
         });
       }
     } catch (e) {
+      // Handle potential errors
     }
   }
 
+  // Pick an image from the gallery
   Future<void> _pickImage() async {
     final ImagePicker _picker = ImagePicker();
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
@@ -76,6 +79,7 @@ class _WebCreatePostPageState extends State<WebCreatePostPage> {
     }
   }
 
+  // Upload image to Firebase Storage and return the download URL
   Future<String> _uploadImage(XFile imageFile) async {
     try {
       String fileName = const Uuid().v4();
@@ -97,6 +101,7 @@ class _WebCreatePostPageState extends State<WebCreatePostPage> {
     }
   }
 
+  // Submit the post data
   Future<void> _submitPost() async {
     final String title = _titleController.text;
     final String details = _detailsController.text;
@@ -122,13 +127,17 @@ class _WebCreatePostPageState extends State<WebCreatePostPage> {
     }
   }
 
+  // Fetch image from URL
   Future<void> _fetchImage(String url) async {
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
+        // Handle successful image fetch if needed
       } else {
+        // Handle unsuccessful fetch
       }
     } catch (e) {
+      // Handle fetch error
     }
   }
 

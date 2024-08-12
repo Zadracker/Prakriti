@@ -3,42 +3,47 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:prakriti/android_screens/an_scaffold.dart';
 import 'package:prakriti/services/quiz_completion_service.dart';
-import 'package:fl_chart/fl_chart.dart'; // Import the fl_chart package
+import 'package:fl_chart/fl_chart.dart'; // Import the fl_chart package for pie charts
 
+// This page displays the results of the quiz
 class AnResultsPage extends StatelessWidget {
   const AnResultsPage({super.key});
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Quiz Results'),
-        automaticallyImplyLeading: false,
+        automaticallyImplyLeading: false, // Disable the default back button
       ),
       body: FutureBuilder<DocumentSnapshot>(
-        future: _loadResults(),
+        future: _loadResults(), // Fetch the quiz results
         builder: (context, snapshot) {
+          // Display a loading spinner while results are being fetched
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
               child: CircularProgressIndicator(),
             );
           }
 
+          // Handle the case where no data is found
           if (!snapshot.hasData) {
             return const Center(
               child: Text('No results found'),
             );
           }
 
+          // Extract data from the snapshot
           final data = snapshot.data!.data() as Map<String, dynamic>;
           final pointsAwarded = data['points_awarded'] as int;
           final wrongAttempts = data['wrong_answers'] as int;
+
+          // Handle potentially missing profile image URL
           final profileImageUrl = data.containsKey('profileImageUrl') && data['profileImageUrl'] != null
               ? data['profileImageUrl']
-              : ''; // Safely handle null values
+              : '';
 
-          final totalQuestions = pointsAwarded + wrongAttempts;
+          final totalQuestions = pointsAwarded + wrongAttempts; // Calculate total questions
 
           return Padding(
             padding: const EdgeInsets.all(16.0),
@@ -62,6 +67,7 @@ class AnResultsPage extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16.0),
+                // Pie chart to visualize the quiz results
                 SizedBox(
                   height: 200.0,
                   child: PieChart(
@@ -86,6 +92,7 @@ class AnResultsPage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16.0),
+                // Button to navigate to quiz attempts page
                 ElevatedButton(
                   onPressed: () {
                     Navigator.push(
@@ -94,7 +101,8 @@ class AnResultsPage extends StatelessWidget {
                     );
                   },
                   child: const Text('See Attempts'),
-                ),                
+                ),
+                // Button to return to the main page
                 ElevatedButton(
                   onPressed: () {
                     Navigator.pushReplacement(
@@ -103,7 +111,7 @@ class AnResultsPage extends StatelessWidget {
                         builder: (context) => AppScaffold(
                           currentIndex: 3, // Index of the Quiz page in the BottomNavigationBar
                           userPoints: pointsAwarded,
-                          profileImageUrl: profileImageUrl, // Pass the appropriate data
+                          profileImageUrl: profileImageUrl,
                         ),
                       ),
                     );
@@ -118,6 +126,7 @@ class AnResultsPage extends StatelessWidget {
     );
   }
 
+  // Fetches the quiz results from Firestore
   Future<DocumentSnapshot> _loadResults() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
@@ -126,12 +135,20 @@ class AnResultsPage extends StatelessWidget {
 
     final today = DateTime.now();
     final collectionName = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
-    final responseDoc = await FirebaseFirestore.instance.collection('quiz_questions').doc(collectionName).collection('responses').doc(user.uid).get();
+
+    // Fetch the document containing the user's quiz responses
+    final responseDoc = await FirebaseFirestore.instance
+        .collection('quiz_questions')
+        .doc(collectionName)
+        .collection('responses')
+        .doc(user.uid)
+        .get();
 
     return responseDoc;
   }
 }
 
+// This page displays the details of the user's quiz attempts
 class AnQuizAttemptsPage extends StatelessWidget {
   final QuizCompletionService _quizCompletionService = QuizCompletionService();
   final String profileImageUrl;
@@ -158,22 +175,25 @@ class AnQuizAttemptsPage extends StatelessWidget {
         ),
       ),
       body: FutureBuilder<DocumentSnapshot>(
-        future: _loadAttempts(),
+        future: _loadAttempts(), // Fetch the quiz attempts
         builder: (context, snapshot) {
+          // Display a loading spinner while attempts are being fetched
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
               child: CircularProgressIndicator(),
             );
           }
 
+          // Handle the case where no data is found
           if (!snapshot.hasData || !snapshot.data!.exists) {
             return const Center(
               child: Text('No attempts found'),
             );
           }
 
+          // Extract data from the snapshot
           final data = snapshot.data!.data() as Map<String, dynamic>;
-          final answers = data['answers'] as List<dynamic>? ?? [];
+          final answers = data['answers'] as List<dynamic>? ?? []; // Get the list of answers
 
           return Padding(
             padding: const EdgeInsets.all(16.0),
@@ -207,6 +227,7 @@ class AnQuizAttemptsPage extends StatelessWidget {
     );
   }
 
+  // Fetches the quiz attempts from Firestore
   Future<DocumentSnapshot> _loadAttempts() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
@@ -215,6 +236,7 @@ class AnQuizAttemptsPage extends StatelessWidget {
 
     final today = DateTime.now();
     final responseDoc = await _quizCompletionService.getQuizResponses(user.uid, today);
+
     return responseDoc;
   }
 }

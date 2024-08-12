@@ -11,12 +11,14 @@ class AnBankPage extends StatefulWidget {
 }
 
 class _AnBankPageState extends State<AnBankPage> {
+  // Instantiate services to interact with user data and handle points transactions
   final UserService _userService = UserService();
-  final PointsService _pointsService = PointsService(); // Instantiate PointsService
-  final TextEditingController _redeemCodeController = TextEditingController();
+  final PointsService _pointsService = PointsService(); // PointsService for redeeming codes
+  final TextEditingController _redeemCodeController = TextEditingController(); // Controller for redeem code input
 
   @override
   void dispose() {
+    // Dispose of the controller when the widget is removed from the widget tree
     _redeemCodeController.dispose();
     super.dispose();
   }
@@ -25,26 +27,27 @@ class _AnBankPageState extends State<AnBankPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Bank'),
+        title: const Text('Bank'), // AppBar title
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0), // Add padding around the content
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildTopCard(),
-            _buildSupportSection(),
-            _buildEcoPointsList(),
-            _buildRedeemCodeSection(),
+            _buildTopCard(), // Card promoting Terra Knight membership
+            _buildSupportSection(), // Section to buy more Eco-Points
+            _buildEcoPointsList(), // List of available Eco-Points packages
+            _buildRedeemCodeSection(), // Section for redeeming codes
           ],
         ),
       ),
     );
   }
 
+  // Widget to display the promotional card for Terra Knight membership
   Widget _buildTopCard() {
     return GestureDetector(
-      onTap: () => _showSupportPopup(context),
+      onTap: () => _showSupportPopup(context), // Show support popup on tap
       child: Card(
         margin: const EdgeInsets.only(bottom: 16),
         shape: RoundedRectangleBorder(
@@ -85,6 +88,7 @@ class _AnBankPageState extends State<AnBankPage> {
     );
   }
 
+  // Widget for the support section where users can buy more Eco-Points
   Widget _buildSupportSection() {
     return const Padding(
       padding: EdgeInsets.symmetric(vertical: 16.0),
@@ -98,6 +102,7 @@ class _AnBankPageState extends State<AnBankPage> {
     );
   }
 
+  // Widget to display a horizontal list of Eco-Points packages
   Widget _buildEcoPointsList() {
     return Container(
       height: 200,
@@ -115,6 +120,7 @@ class _AnBankPageState extends State<AnBankPage> {
     );
   }
 
+  // Widget for the redeem code section
   Widget _buildRedeemCodeSection() {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
@@ -138,7 +144,7 @@ class _AnBankPageState extends State<AnBankPage> {
           ),
           const SizedBox(height: 8),
           ElevatedButton(
-            onPressed: _redeemCode,
+            onPressed: _redeemCode, // Trigger redeem code action
             child: const Text('Redeem'),
           ),
         ],
@@ -146,11 +152,12 @@ class _AnBankPageState extends State<AnBankPage> {
     );
   }
 
+  // Helper method to build individual Eco-Points image cards
   Widget _buildImageCard(String imagePath, String text, int ecoPoints) {
     return SizedBox(
       width: MediaQuery.of(context).size.width * 0.6,
       child: GestureDetector(
-        onTap: () => _buyEcoPoints(ecoPoints),
+        onTap: () => _buyEcoPoints(ecoPoints), // Trigger Eco-Points purchase on tap
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -184,13 +191,14 @@ class _AnBankPageState extends State<AnBankPage> {
     );
   }
 
+  // Method to handle the purchase of Eco-Points
   Future<void> _buyEcoPoints(int ecoPoints) async {
     try {
       User? user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         int currentCoins = await _userService.getUserEnviroCoins(user.uid);
         await _userService.updateEnviroCoins(user.uid, currentCoins + ecoPoints);
-        _showSupportPopup(context);
+        _showSupportPopup(context); // Show popup after successful purchase
       } else {
         _showRoleBasedSnackbar('User not logged in');
       }
@@ -199,6 +207,7 @@ class _AnBankPageState extends State<AnBankPage> {
     }
   }
 
+  // Method to handle redeeming a code
   Future<void> _redeemCode() async {
     String code = _redeemCodeController.text.trim();
 
@@ -220,12 +229,14 @@ class _AnBankPageState extends State<AnBankPage> {
     }
   }
 
+  // Method to display a Snackbar with a role-based message
   Future<void> _showRoleBasedSnackbar(String message) async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       String? role = await _userService.getUserRole(user.uid); // Fetch user's role
       String roleMessage;
 
+      // Customize message based on user's role
       switch (role) {
         case 'admin':
           roleMessage = 'Admin: $message';
@@ -247,6 +258,7 @@ class _AnBankPageState extends State<AnBankPage> {
     }
   }
 
+  // Method to show a support popup dialog
   void _showSupportPopup(BuildContext context) {
     showDialog(
       context: context,
@@ -269,7 +281,7 @@ class _AnBankPageState extends State<AnBankPage> {
     );
   }
 
-
+  // Method to show a Snackbar with a given message
   void _showSnackbar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

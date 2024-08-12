@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:prakriti/models/profile_assets.dart';
 
 class ShopService {
-  // Singleton pattern
+  // Singleton pattern to ensure a single instance of ShopService
   ShopService._privateConstructor();
   static final ShopService _instance = ShopService._privateConstructor();
   factory ShopService() => _instance;
@@ -12,9 +12,10 @@ class ShopService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // Initialize the 'shop' collection with actual data
+  /// Initializes the 'shop' collection with asset data.
   Future<void> initializeShopCollection() async {
     try {
+      // Combine all assets into one map
       final assets = {
         ...ProfileAssets.normalProfileImages,
         ...ProfileAssets.premiumProfileImages,
@@ -29,6 +30,7 @@ class ShopService {
         final docSnapshot = await docRef.get();
 
         if (!docSnapshot.exists) {
+          // If the asset does not exist, create it
           final price = _determinePriceBasedOnType(assetId);
           final assetType = _determineAssetType(assetId);
           final assetData = {
@@ -40,16 +42,19 @@ class ShopService {
 
           await docRef.set(assetData);
         } else {
+          // If the asset exists, update its price
           final price = _determinePriceBasedOnType(assetId);
           await docRef.update({'price': price});
         }
       }
 
     } catch (e) {
+      // Handle errors here
+      print('Error initializing shop collection: $e');
     }
   }
 
-  // Determine the asset type based on its ID
+  /// Determines the asset type based on its ID.
   String _determineAssetType(String assetId) {
     if (ProfileAssets.normalProfileImages.containsKey(assetId) ||
         ProfileAssets.premiumProfileImages.containsKey(assetId) ||
@@ -63,25 +68,25 @@ class ShopService {
     return 'unknown';
   }
 
-  // Determine the price for an asset based on its type
+  /// Determines the price for an asset based on its type.
   int _determinePriceBasedOnType(String assetId) {
     if (ProfileAssets.normalProfileImages.containsKey(assetId)) {
-      return 50;
-    }else if (ProfileAssets.normalBackgrounds.containsKey(assetId)) {
-      return 100; 
-    }else if (ProfileAssets.premiumProfileImages.containsKey(assetId)) {
-    return 300; 
+      return 50; // Price for normal profile images
+    } else if (ProfileAssets.normalBackgrounds.containsKey(assetId)) {
+      return 100; // Price for normal backgrounds
+    } else if (ProfileAssets.premiumProfileImages.containsKey(assetId)) {
+      return 300; // Price for premium profile images
     } else if (ProfileAssets.premiumBackgrounds.containsKey(assetId)) {
-      return 500;
+      return 500; // Price for premium backgrounds
     } else if (ProfileAssets.specialProfileImages.containsKey(assetId)) {
-    return 2000; 
+      return 2000; // Price for special profile images
     } else if (ProfileAssets.specialBackgrounds.containsKey(assetId)) {
-      return 3000;
+      return 3000; // Price for special backgrounds
     }
-    return 0;
+    return 0; // Default price if asset type is unknown
   }
 
-  // Retrieve the user's unlocked assets
+  /// Retrieves the user's unlocked assets.
   Future<Map<String, List<String>>> getUserUnlockedAssets() async {
     final user = _auth.currentUser;
     if (user == null) {
@@ -117,7 +122,7 @@ class ShopService {
     }
   }
 
-  // Purchase an asset
+  /// Handles the purchase of an asset by the user.
   Future<void> purchaseAsset(String assetType, String assetId, int price) async {
     final user = _auth.currentUser;
     if (user == null) {
@@ -155,7 +160,7 @@ class ShopService {
     }
   }
 
-  // Retrieve asset prices with discount applied for Terra Knights
+  /// Retrieves asset prices with potential discounts applied for Terra Knights.
   Future<Map<String, int>> getAssetPrices() async {
     final assetPrices = <String, int>{};
     final user = _auth.currentUser;
@@ -184,20 +189,20 @@ class ShopService {
     return assetPrices;
   }
 
-  // Check if an asset is premium
+  /// Checks if an asset is classified as premium.
   bool _isPremiumAsset(String assetId) {
     return ProfileAssets.premiumProfileImages.containsKey(assetId) ||
            ProfileAssets.premiumBackgrounds.containsKey(assetId);
   }
 
-  // Fetch the user's role
+  /// Fetches the user's role from Firestore.
   Future<String> _getUserRole(String userId) async {
     final userDoc = await _firestore.collection('users').doc(userId).get();
     final userData = userDoc.data();
-    return userData?['role'] ?? 'normal'; // Adjust default role as needed
+    return userData?['role'] ?? 'normal'; // Default role if not specified
   }
 
-  // Capitalize the first letter of a string
+  /// Capitalizes the first letter of a string.
   String capitalizeFirstLetter(String text) {
     if (text.isEmpty) return '';
     return text[0].toUpperCase() + text.substring(1);

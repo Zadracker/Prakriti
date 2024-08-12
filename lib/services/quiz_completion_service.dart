@@ -7,10 +7,11 @@ import 'package:prakriti/services/points_service.dart';
 class QuizCompletionService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final PointsService _pointsService = PointsService();
-  final String? apiKey;
+  final String? apiKey; // API key for Generative AI model
 
-  QuizCompletionService() : apiKey = dotenv.env['API_KEY'];
+  QuizCompletionService() : apiKey = dotenv.env['API_KEY']; // Initialize API key from environment variables
 
+  /// Starts a quiz for the current user by creating a response document.
   Future<void> startQuiz() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
@@ -20,7 +21,7 @@ class QuizCompletionService {
     final today = DateTime.now();
     final collectionName = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
 
-    // Create a response document as soon as the user starts the quiz
+    // Create a response document to track the user's quiz progress
     await _firestore.collection('quiz_questions').doc(collectionName).collection('responses').doc(user.uid).set({
       'userID': user.uid,
       'questions_attempted': 0,
@@ -32,6 +33,7 @@ class QuizCompletionService {
     });
   }
 
+  /// Submits an answer for a given question and updates the quiz progress.
   Future<Map<String, dynamic>> submitAnswer(String question, String answer) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
@@ -70,15 +72,16 @@ class QuizCompletionService {
       wrongAttempts++;
     }
 
+    // Update the response document with the new data
     await responseDocRef.update({
       'questions_attempted': answers.length,
       'wrong_answers': wrongAttempts,
       'points_awarded': pointsAwarded,
       'answers': answers,
-      'completed_status': answers.length >= 20,
+      'completed_status': answers.length >= 20, // Mark quiz as complete if 20 or more questions answered
     });
 
-    // Award points to the user
+    // Award points to the user if the quiz is completed
     if (answers.length >= 20) {
       await _pointsService.awardQuizPoints(user.uid, pointsAwarded);
     }
@@ -87,6 +90,7 @@ class QuizCompletionService {
     return {'isCorrect': isCorrect, 'explanation': explanation};
   }
 
+  /// Validates an answer using a Generative AI model.
   Future<Map<String, dynamic>> validateAnswer(String question, String answer) async {
     if (apiKey == null) {
       return {'isCorrect': false, 'explanation': 'No explanation available'};
@@ -103,7 +107,7 @@ class QuizCompletionService {
     return {'isCorrect': isCorrect, 'explanation': explanation};
   }
 
-
+  /// Retrieves the quiz responses for a user on a specific date.
   Future<DocumentSnapshot> getQuizResponses(String userId, DateTime date) async {
     final collectionName = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
     final responseDoc = await _firestore.collection('quiz_questions').doc(collectionName).collection('responses').doc(userId).get();

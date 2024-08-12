@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:prakriti/services/achievements_service.dart';
 
+// The AchievementsPage class displays the achievements of the user.
 class AchievementsPage extends StatefulWidget {
   const AchievementsPage({super.key});
 
@@ -10,48 +11,53 @@ class AchievementsPage extends StatefulWidget {
 }
 
 class _AchievementsPageState extends State<AchievementsPage> {
+  // Service instance for handling achievement-related operations
   final AchievementsService _achievementsService = AchievementsService();
+  // Currently logged-in user
   final User? _user = FirebaseAuth.instance.currentUser;
+  // Map to store the unlocked status of achievements
   Map<String, bool> _achievements = {};
 
   @override
   void initState() {
     super.initState();
-    _loadAchievements();
+    _loadAchievements(); // Load achievements when the widget is initialized
   }
 
+  // Loads the achievements data for the current user
   Future<void> _loadAchievements() async {
     if (_user != null) {
       String userId = _user.uid;
       
-      // Load level and friend achievements
+      // Load achievements related to levels and friends
       await _achievementsService.checkAndUnlockLevelAchievements(userId);
       await _achievementsService.checkAndUnlockFriendAchievements(userId);
       
-      // Define all achievement IDs
+      // Define all achievement IDs to check
       List<String> achievementIds = [
         'level_1', 'level_5', 'level_10', 'level_20', 'level_50',
         'made_1_pal', 'made_10_pals'
       ];
       
-      // Check and update achievements
+      // Check if each achievement is unlocked and update the map
       Map<String, bool> achievements = {};
       for (String id in achievementIds) {
         achievements[id] = await _achievementsService.isAchievementUnlocked(userId, id);
       }
       
       setState(() {
-        _achievements = achievements;
+        _achievements = achievements; // Update the state with fetched achievements
       });
     }
   }
 
+  // Shows a dialog with details about a specific achievement
   void _showAchievementDetails(String achievementId) {
     String title;
     String description;
     IconData icon;
 
-    // Define details for each achievement
+    // Provide details for each achievement ID
     switch (achievementId) {
       case 'level_1':
         title = 'Level 1 Achiever';
@@ -95,6 +101,7 @@ class _AchievementsPageState extends State<AchievementsPage> {
         break;
     }
 
+    // Show a dialog with achievement details
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -111,7 +118,7 @@ class _AchievementsPageState extends State<AchievementsPage> {
             TextButton(
               child: const Text('Close'),
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(); // Close the dialog
               },
             ),
           ],
@@ -120,20 +127,21 @@ class _AchievementsPageState extends State<AchievementsPage> {
     );
   }
 
+  // Builds a card widget for displaying an achievement
   Widget _buildAchievementCard(String achievementId, IconData icon) {
-    bool isUnlocked = _achievements[achievementId] ?? false;
+    bool isUnlocked = _achievements[achievementId] ?? false; // Check if the achievement is unlocked
 
     return GestureDetector(
-      onTap: () => _showAchievementDetails(achievementId),
+      onTap: () => _showAchievementDetails(achievementId), // Show details on tap
       child: Card(
-        color: isUnlocked ? Colors.green : Colors.grey,
+        color: isUnlocked ? Colors.green : Colors.grey, // Change color based on achievement status
         child: SizedBox(
           width: 100,
           height: 100,
           child: Center(
             child: Icon(
               icon,
-              color: isUnlocked ? Colors.white : Colors.black,
+              color: isUnlocked ? Colors.white : Colors.black, // Change icon color based on achievement status
               size: 50,
             ),
           ),
@@ -146,10 +154,10 @@ class _AchievementsPageState extends State<AchievementsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Achievements'),
+        title: const Text('Achievements'), // App bar title
       ),
       body: RefreshIndicator(
-        onRefresh: _loadAchievements,
+        onRefresh: _loadAchievements, // Refresh achievements data on pull-to-refresh
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: Padding(
@@ -157,6 +165,7 @@ class _AchievementsPageState extends State<AchievementsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Section for level achievements
                 const Text(
                   'Level Achievements',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -175,6 +184,7 @@ class _AchievementsPageState extends State<AchievementsPage> {
                   ],
                 ),
                 const SizedBox(height: 20),
+                // Section for Planet Pals achievements
                 const Text(
                   'Planet Pals Achievements',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),

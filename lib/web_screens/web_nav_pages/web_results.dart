@@ -18,12 +18,13 @@ class _WebResultsPageState extends State<WebResultsPage> with SingleTickerProvid
   @override
   void initState() {
     super.initState();
+    // Initialize the TabController with 2 tabs
     _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _tabController.dispose(); // Dispose the TabController when the widget is disposed
     super.dispose();
   }
 
@@ -39,20 +40,20 @@ class _WebResultsPageState extends State<WebResultsPage> with SingleTickerProvid
               child: TabBar(
                 controller: _tabController,
                 tabs: const [
-                  Tab(text: 'Results'),
-                  Tab(text: 'Attempts'),
+                  Tab(text: 'Results'), // Tab for displaying results
+                  Tab(text: 'Attempts'), // Tab for displaying attempts
                 ],
-                indicatorColor: Colors.white,
-                labelColor: Colors.green, // Selected tab text color
-                unselectedLabelColor: Colors.white, // Unselected tab text color
+                indicatorColor: Colors.white, // Indicator color for selected tab
+                labelColor: Colors.green, // Color for selected tab text
+                unselectedLabelColor: Colors.white, // Color for unselected tab text
               ),
             ),
             Expanded(
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  _buildResultsTab(),
-                  _buildAttemptsTab(),
+                  _buildResultsTab(), // Widget for displaying results
+                  _buildAttemptsTab(), // Widget for displaying attempts
                 ],
               ),
             ),
@@ -62,20 +63,21 @@ class _WebResultsPageState extends State<WebResultsPage> with SingleTickerProvid
     );
   }
 
+  // Builds the 'Results' tab
   Widget _buildResultsTab() {
     return FutureBuilder<DocumentSnapshot>(
-      future: _loadResults(),
+      future: _loadResults(), // Fetch quiz results from Firestore
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator()); // Show loading indicator while fetching data
         }
 
         if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
+          return Center(child: Text('Error: ${snapshot.error}')); // Display error message if an error occurs
         }
 
         if (!snapshot.hasData || !snapshot.data!.exists) {
-          return const Center(child: Text('No results found'));
+          return const Center(child: Text('No results found')); // Display message if no results are found
         }
 
         final data = snapshot.data!.data() as Map<String, dynamic>;
@@ -122,8 +124,8 @@ class _WebResultsPageState extends State<WebResultsPage> with SingleTickerProvid
                         titleStyle: const TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold, color: Colors.white),
                       ),
                     ],
-                    borderData: FlBorderData(show: false),
-                    sectionsSpace: 0,
+                    borderData: FlBorderData(show: false), // Hide border data
+                    sectionsSpace: 0, // No space between sections
                   ),
                 ),
               ),
@@ -134,20 +136,21 @@ class _WebResultsPageState extends State<WebResultsPage> with SingleTickerProvid
     );
   }
 
+  // Builds the 'Attempts' tab
   Widget _buildAttemptsTab() {
     return FutureBuilder<DocumentSnapshot>(
-      future: _loadAttempts(),
+      future: _loadAttempts(), // Fetch quiz attempts from Firestore
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator()); // Show loading indicator while fetching data
         }
 
         if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
+          return Center(child: Text('Error: ${snapshot.error}')); // Display error message if an error occurs
         }
 
         if (!snapshot.hasData || !snapshot.data!.exists) {
-          return const Center(child: Text('No attempts found'));
+          return const Center(child: Text('No attempts found')); // Display message if no attempts are found
         }
 
         final data = snapshot.data!.data() as Map<String, dynamic>;
@@ -186,6 +189,7 @@ class _WebResultsPageState extends State<WebResultsPage> with SingleTickerProvid
     );
   }
 
+  /// Fetches the quiz results from Firestore for the current user
   Future<DocumentSnapshot> _loadResults() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
@@ -204,6 +208,7 @@ class _WebResultsPageState extends State<WebResultsPage> with SingleTickerProvid
     return responseDoc;
   }
 
+  /// Fetches the quiz attempts from the QuizCompletionService for the current user
   Future<DocumentSnapshot> _loadAttempts() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {

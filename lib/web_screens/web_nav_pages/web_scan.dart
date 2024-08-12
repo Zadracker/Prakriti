@@ -14,24 +14,25 @@ class WebScanPage extends StatefulWidget {
 }
 
 class _WebScanPageState extends State<WebScanPage> {
-  Uint8List? _imageData;
-  String _selectedAction = 'Scan Product';
-  String _generatedOutput = '';
-  bool _isImageSelected = false;
+  Uint8List? _imageData; // Holds the selected image data
+  String _selectedAction = 'Scan Product'; // Currently selected action
+  String _generatedOutput = ''; // Result of the image scan
+  bool _isImageSelected = false; // Whether an image has been selected
 
   final AccessibilityPreferencesService _preferencesService = AccessibilityPreferencesService();
-  final FlutterTts _flutterTts = FlutterTts();
+  final FlutterTts _flutterTts = FlutterTts(); // Text-to-Speech service
 
-  int _fontSize = 1;
-  String _font = 'OpenSans';
-  bool _readAloud = false;
+  int _fontSize = 1; // Font size setting
+  String _font = 'OpenSans'; // Font family setting
+  bool _readAloud = false; // Whether text should be read aloud
 
   @override
   void initState() {
     super.initState();
-    _loadUserPreferences();
+    _loadUserPreferences(); // Load user preferences on initialization
   }
 
+  // Loads user preferences for font size, font family, and text-to-speech settings
   Future<void> _loadUserPreferences() async {
     final preferences = await _preferencesService.getUserPreferences(FirebaseAuth.instance.currentUser!.uid);
     setState(() {
@@ -47,6 +48,7 @@ class _WebScanPageState extends State<WebScanPage> {
     }
   }
 
+  // Adjusts the text size based on the font size setting
   double textSize(double size) {
     switch (_fontSize) {
       case 2:
@@ -58,18 +60,21 @@ class _WebScanPageState extends State<WebScanPage> {
     }
   }
 
+  // Speaks the provided text if read aloud is enabled
   Future<void> _speak(String text) async {
     if (_readAloud) {
       await _flutterTts.speak(text);
     }
   }
 
+  // Updates the currently selected action
   void _onActionSelected(String action) {
     setState(() {
       _selectedAction = action;
     });
   }
 
+  // Opens a file picker to select an image
   void _chooseImage() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.image,
@@ -83,6 +88,7 @@ class _WebScanPageState extends State<WebScanPage> {
     }
   }
 
+  // Submits the selected image for processing and updates the output
   Future<void> _submitImage() async {
     if (_imageData != null) {
       final result = await submitImageToGemini(_imageData, _selectedAction);
@@ -98,6 +104,7 @@ class _WebScanPageState extends State<WebScanPage> {
     }
   }
 
+  // Returns a description text based on the selected action
   String _getInfoText() {
     switch (_selectedAction) {
       case 'Scan Product':
@@ -120,14 +127,16 @@ class _WebScanPageState extends State<WebScanPage> {
     return Scaffold(
       body: Row(
         children: [
+          // Left side: Controls and text output
           Container(
             width: MediaQuery.of(context).size.width * 0.5,
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                // Segmented buttons for selecting actions
                 ToggleButtons(
-                  constraints: const BoxConstraints.tightFor(width: 140, height: 50), // Fixed width and height for each button
+                  constraints: const BoxConstraints.tightFor(width: 140, height: 50), // Fixed width and height
                   isSelected: [
                     _selectedAction == 'Scan Product',
                     _selectedAction == 'Scan Pollution',
@@ -217,6 +226,7 @@ class _WebScanPageState extends State<WebScanPage> {
           const SizedBox(width: 16),
           const VerticalDivider(thickness: 1, width: 1),
           const SizedBox(width: 16),
+          // Right side: Image selection and display
           Expanded(
             flex: 3,
             child: Column(
@@ -263,6 +273,7 @@ class _WebScanPageState extends State<WebScanPage> {
     );
   }
 
+  // Builds text for segmented buttons
   Widget _buildSegmentedButtonText(String text, ThemeData theme) {
     return FittedBox(
       fit: BoxFit.scaleDown,
